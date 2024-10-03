@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Игра Мемори</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="vendor/react.development.js"></script>
+  <script src="vendor/react-dom.development.js"></script>
+  <script src="vendor/babel.min.js"></script>
+  <!--подключите библиотеки React, ReactDOM и BabelJS-->
+  <script src="data.js"></script>
+  <!--подключите файл данных-->
+</head>
+<body>
+  <div id="root">Корневой элемент</div>
+  
+  <script type="text/babel">
+    const container = document.getElementById('root');
+    
+    function Message ({from}) {
+      return (
+        <p>Вам письмо от <b>{from}</b></p>
+      )
+    }
+
+    function App () {
+      const cards = [];
+      for (const i of [1, 2, 3, 4, 5, 6]) {
+        cards.push(<Card url={'img/cats-${i}.jpg'}/>);
+      }
+      return (
+        <section className="game">
+          <ul className="cards">
+          {cards}
+          </ul>
+        </section>
+      )
+    }
+
+    function Card ({url}) {
+      return(
+        <li className='card'>
+          <img src={url} width="204" height="144" alt="Котик"/>
+        </li>  
+      );
+    }
+
+    const root = ReactDOM.createRoot(container)
+    root.render(<App />);
+
+  </script>
+</body>
+</html>
