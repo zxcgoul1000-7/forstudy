@@ -17,36 +17,40 @@
   <script type="text/babel">
     const container = document.getElementById('root');
     
-    function Message ({from}) {
-      return (
-        <p>Вам письмо от <b>{from}</b></p>
-      )
-    }
-
-    function App () {
-      const cards = [];
-      for (const i of [1, 2, 3, 4, 5, 6]) {
-        cards.push(<Card url={'img/cats-${i}.jpg'}/>);
-      }
-      return (
-        <section className="game">
-          <ul className="cards">
+    function App ({images = [], 
+      showedItems = [0, 4, 5, 7], 
+      finishedItems = [4, 7]}) {
+      const cards = images.map((item, index)=> (
+        <Card
+        url ={item.url}
+        isShowed = {showedItems.includes(index)}
+        isFinished = {finishedItems.includes(index)}
+        />
+    ));
+    return (
+      <section className = "game container">
+        <ul className="cards">
           {cards}
-          </ul>
-        </section>
-      )
+        </ul>  
+      </section>
+    )
     }
 
-    function Card ({url}) {
+    function Card ({url, isShowed = true, isFinished = false}) {
+      const className = `card ${
+      isShowed ? 'card-show' : ''
+      } ${
+      isFinished ? 'card-finished' : ''
+      }`
       return(
-        <li className='card'>
+        <li className={className}>
           <img src={url} width="204" height="144" alt="Котик"/>
         </li>  
       );
     }
 
     const root = ReactDOM.createRoot(container)
-    root.render(<App />);
+    root.render(<App images={images}/>);
 
   </script>
 </body>
