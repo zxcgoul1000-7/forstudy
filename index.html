@@ -7,6 +7,7 @@
   <script src="vendor/react.development.js"></script>
   <script src="vendor/react-dom.development.js"></script>
   <script src="vendor/babel.min.js"></script>
+  <script src="@dubaua/get-declension"></script>
   <!--подключите библиотеки React, ReactDOM и BabelJS-->
   <script src="data.js"></script>
   <!--подключите файл данных-->
@@ -16,41 +17,77 @@
   
   <script type="text/babel">
     const container = document.getElementById('root');
-    
-    function App ({images = [], 
-      showedItems = [0, 4, 5, 7], 
-      finishedItems = [4, 7]}) {
-      const cards = images.map((item, index)=> (
+    const root = ReactDOM.createRoot(container)
+    root.render(<App images={images}/>)
+
+
+    function App ({images = []}) {
+      const finishedItems = [];
+      const [stepsCount, setStepsCount] = React.useState(0);
+
+      const checkItems = () => {
+        setStepsCount((i) => i + 1);
+      };
+
+      return (
+        <section className = 'game container'>
+          <p className='steps'> {stepsCount} шагов </p>
+          <Grid images = {images} finishedItems = {finishedItems} checkItems = {checkItems}/>  
+        </section>
+      );
+
+    }
+
+    function Grid ({images, finishedItems, checkItems}) {
+      const [visibledItems, setVisibledItems] = React.useState([]);
+
+      const handleCardClick = (id) => {
+        if (visibledItems.includes(id)) {
+          return;
+        }
+        checkItems();
+        setVisibledItems((items) => [...items, id]);
+      }
+
+      const cards = images.map((item)=> (
         <Card
-        url ={item.url}
-        isShowed = {showedItems.includes(index)}
-        isFinished = {finishedItems.includes(index)}
+        key = {item.id}
+        id = {item.id}
+        url = {item.url}
+        isVisibled = {visibledItems.includes(item.id)}
+        isFinished = {finishedItems.includes(item.id)}
+        onCardClick={handleCardClick}
         />
     ));
     return (
-      <section className = "game container">
         <ul className="cards">
           {cards}
         </ul>  
-      </section>
     )
     }
 
-    function Card ({url, isShowed = true, isFinished = false}) {
+    function Card ({url, isFinished, isVisibled, onCardClick, id}) {
+
       const className = `card ${
-      isShowed ? 'card-show' : ''
+      isVisibled ? 'card-show' : ''
       } ${
       isFinished ? 'card-finished' : ''
-      }`
+      }`;
+
+      const handleClick = () => {
+        if (isFinished) {
+          return;
+        }
+        onCardClick(id);
+      }
+
       return(
-        <li className={className}>
+        <li onClick = {handleClick} className = {className}>
           <img src={url} width="204" height="144" alt="Котик"/>
         </li>  
       );
     }
 
-    const root = ReactDOM.createRoot(container)
-    root.render(<App images={images}/>);
 
   </script>
 </body>
