@@ -7,7 +7,7 @@
   <script src="vendor/react.development.js"></script>
   <script src="vendor/react-dom.development.js"></script>
   <script src="vendor/babel.min.js"></script>
-  <script src="@dubaua/get-declension"></script>
+  <!-- <script src="dubaua/get-declension"></script> -->
   <!--подключите библиотеки React, ReactDOM и BabelJS-->
   <script src="data.js"></script>
   <!--подключите файл данных-->
@@ -18,24 +18,81 @@
   <script type="text/babel">
     const container = document.getElementById('root');
     const root = ReactDOM.createRoot(container)
-    root.render(<App images={images}/>)
+    root.render(<App images={images}/>);
 
 
-    function App ({images = []}) {
-      const finishedItems = [];
+    const useGame = (images) => {
+      const [finishedItems, setFinishedItems] = React.useState([]);
       const [stepsCount, setStepsCount] = React.useState(0);
 
-      const checkItems = () => {
+      const checkItems = (firstItem, secondItem) => {
+        const fisrtImage = images.find(({id}) => id === firstItem);
+        const secondImage = images.find(({id}) => id === secondItem);
+        if (fisrtImage.url === secondImage.url) {
+          setFinishedItems((items) => [...items, firstItem, secondItem])
+        }
         setStepsCount((i) => i + 1);
       };
+      
+      const handleReset = () => {
+        setFinishedItems([]);
+        setStepsCount(0);
+      }
+
+      
+      const isGameOver = finishedItems.length === images.length;
+      return {
+        finishedItems,
+        handleReset,
+        checkItems,
+        isGameOver,
+        stepsCount
+      };
+    };
+
+    function App ({images = []}) {
+      const {
+        finishedItems,
+        handleReset,
+        checkItems,
+        errorsCount,
+        isGameOver,
+        stepsCount,
+      } = useGame(images);
 
       return (
         <section className = 'game container'>
-          <p className='steps'> {stepsCount} шагов </p>
-          <Grid images = {images} finishedItems = {finishedItems} checkItems = {checkItems}/>  
+          <Progress value={finishedItems.length} max={images.length} />
+            <p class="progress-description">Открыто <span>{finishedItems.length/2}</span> / <span>6</span></p>
+            <div className='steps'> {stepsCount} шагов </div>
+          <Grid images = {images} finishedItems = {finishedItems} checkItems = {checkItems}/> 
+          { isGameOver && (<Modal>
+            <h3 className="modal-caption">Победа!</h3>
+            <p className="modal-description">Вы собрали все пары за {stepsCount} шагов</p>
+            <button onClick={handleReset} className="button" type="button">Новая игра</button>
+          </Modal> 
+          )}
         </section>
       );
+    }
 
+
+    function Progress ({value, max}) {
+      return (
+        <div className ="progress-wrapper">
+          <div className="progress" style={{width: `${value / max * 100}%`}}></div>
+        </div>
+      );
+    }
+
+    function Modal ({children, className}) {
+      return (
+        <div className="modal">
+          <div className={`modal-box ${className}`}>
+            {children}
+          </div>
+        </div>
+      )
     }
 
     function Grid ({images, finishedItems, checkItems}) {
@@ -45,15 +102,26 @@
         if (visibledItems.includes(id)) {
           return;
         }
-        checkItems();
-        setVisibledItems((items) => [...items, id]);
+        switch (visibledItems.length) {
+          case 0:
+            setVisibledItems([id]);
+            break;
+          case 1:
+            setVisibledItems((items) => [...items, id]);
+            checkItems(visibledItems[0], id);
+            setTimeout (() => {
+              setVisibledItems ([]);
+            }, 800)
+            break;
+          default:
+            setVisibledItems ([]);
+        }
       }
 
       const cards = images.map((item)=> (
         <Card
         key = {item.id}
-        id = {item.id}
-        url = {item.url}
+        item = {item}
         isVisibled = {visibledItems.includes(item.id)}
         isFinished = {finishedItems.includes(item.id)}
         onCardClick={handleCardClick}
@@ -66,8 +134,8 @@
     )
     }
 
-    function Card ({url, isFinished, isVisibled, onCardClick, id}) {
-
+    function Card ({item, isFinished, isVisibled, onCardClick}) {
+      const {url, id} = item;
       const className = `card ${
       isVisibled ? 'card-show' : ''
       } ${
